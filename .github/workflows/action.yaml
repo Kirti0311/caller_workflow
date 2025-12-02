@@ -24,7 +24,7 @@ jobs:
           REPO=${{ github.repository }}
           
           # Get approvals
-          APPROVERS=$(gh pr review $PR_NUMBER --repo $REPO --json author --jq '.[] | select(.state=="APPROVED") | .author.login' | head -1)
+            APPROVER=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews --jq '.[] | select(.state=="APPROVED") | .user.login' | head -1)
           
           # Get merger info
           MERGER=$(gh pr view $PR_NUMBER --repo $REPO --json mergedBy --jq '.mergedBy.login')
