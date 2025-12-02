@@ -37,6 +37,8 @@ jobs:
 
           # Get merger info (explicit repo so we don't need a git repo)
           MERGER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedBy --jq '.mergedBy.login')
+          echo "Resolved APPROVER=$APPROVER"
+          echo "Resolved MERGER=$MERGER"
 
           echo "approver=$APPROVER" >> "$GITHUB_OUTPUT"
           echo "merger=$MERGER"     >> "$GITHUB_OUTPUT"
