@@ -25,22 +25,26 @@ jobs:
       - name: Get PR Approver and Merger
         id: pr-info
         run: |
-          PR_NUMBER="${{ inputs.pr_number }}"
-          REPO="${{ github.repository }}"
+            PR_NUMBER="${{ inputs.pr_number }}"
+            REPO="${{ github.repository }}"
 
-          echo "Using PR_NUMBER=$PR_NUMBER"
-          echo "Using REPO=$REPO"
+            echo "Using PR_NUMBER=$PR_NUMBER"
+            echo "Using REPO=$REPO"
 
-          # Get approvals
-          APPROVER=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews \
+            echo "All reviews for debugging:"
+            gh api repos/$REPO/pulls/$PR_NUMBER/reviews --jq '.[] | {user: .user.login, state: .state}' || echo "No reviews found"
+
+            # Get approvals
+            APPROVER=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews \
             --jq '.[] | select(.state=="APPROVED") | .user.login' | head -1)
 
-          # Get merger info (explicit repo so we don't need a git repo)
-          MERGER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedBy --jq '.mergedBy.login')
-          echo "Resolved APPROVER=$APPROVER"
-          echo "Resolved MERGER=$MERGER"
+            # Get merger info
+            MERGER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedBy --jq '.mergedBy.login')
 
-          echo "approver=$APPROVER" >> "$GITHUB_OUTPUT"
-          echo "merger=$MERGER"     >> "$GITHUB_OUTPUT"
+            echo "Resolved APPROVER=$APPROVER"
+            echo "Resolved MERGER=$MERGER"
+
+            echo "approver=$APPROVER" >> "$GITHUB_OUTPUT"
+            echo "merger=$MERGER"     >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ github.token }}
+            GH_TOKEN: ${{ github.token }}
