@@ -2,6 +2,10 @@ name: Get PR Approver and Merger
 
 on:
   workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
     outputs:
       approver:
         description: "GitHub username of the person who approved the PR"
@@ -15,22 +19,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       approver: ${{ steps.pr-info.outputs.approver }}
-      merger: ${{ steps.pr-info.outputs.merger }}
+      merger:  ${{ steps.pr-info.outputs.merger }}
+
     steps:
       - name: Get PR Approver and Merger
         id: pr-info
         run: |
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            REPO="${{ github.repository }}"
+          PR_NUMBER="${{ inputs.pr_number }}"
+          REPO="${{ github.repository }}"
 
-            # Get approvals
-            APPROVER=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews \
+          echo "Using PR_NUMBER=$PR_NUMBER"
+          echo "Using REPO=$REPO"
+
+          # Get approvals
+          APPROVER=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews \
             --jq '.[] | select(.state=="APPROVED") | .user.login' | head -1)
 
-            # Get merger info (no --repo needed)
-            MERGER=$(gh pr view $PR_NUMBER --json mergedBy --jq '.mergedBy.login')
+          # Get merger info (explicit repo so we don't need a git repo)
+          MERGER=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedBy --jq '.mergedBy.login')
 
-            echo "approver=$APPROVER" >> $GITHUB_OUTPUT
-            echo "merger=$MERGER" >> $GITHUB_OUTPUT
+          echo "approver=$APPROVER" >> "$GITHUB_OUTPUT"
+          echo "merger=$MERGER"     >> "$GITHUB_OUTPUT"
         env:
-            GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
