@@ -1,0 +1,35 @@
+name: Get PR Approver and Merger
+
+on:
+  workflow_call:
+    outputs:
+      approver:
+        description: "GitHub username of the person who approved the PR"
+        value: ${{ jobs.get-pr-info.outputs.approver }}
+      merger:
+        description: "GitHub username of the person who merged the PR"
+        value: ${{ jobs.get-pr-info.outputs.merger }}
+
+jobs:
+  get-pr-info:
+    runs-on: ubuntu-latest
+    outputs:
+      approver: ${{ steps.pr-info.outputs.approver }}
+      merger: ${{ steps.pr-info.outputs.merger }}
+    steps:
+      - name: Get PR Approver and Merger
+        id: pr-info
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          
+          # Get approvals
+          APPROVERS=$(gh pr review $PR_NUMBER --repo $REPO --json author --jq '.[] | select(.state=="APPROVED") | .author.login' | head -1)
+          
+          # Get merger info
+          MERGER=$(gh pr view $PR_NUMBER --repo $REPO --json mergedBy --jq '.mergedBy.login')
+          
+          echo "approver=$APPROVERS" >> $GITHUB_OUTPUT
+          echo "merger=$MERGER" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
