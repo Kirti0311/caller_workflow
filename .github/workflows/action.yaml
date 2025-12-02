@@ -32,4 +32,4 @@ jobs:
           echo "approver=$APPROVERS" >> $GITHUB_OUTPUT
           echo "merger=$MERGER" >> $GITHUB_OUTPUT
         env:
-          GH_TOKEN: ${{ secrets.TOKEN }}
+          GH_TOKEN: ${{ github.token }}
